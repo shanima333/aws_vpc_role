@@ -1,0 +1,123 @@
+- name: "Create a VPC"
+  ec2_vpc_net:
+     name: "{{ vpc_name }}"
+     cidr_block: "{{ cidr }}"
+     region: "{{ region }}"
+     dns_support: yes
+     dns_hostnames: yes
+     tenancy: default
+     state: present
+  register: ec2_vpc
+
+- name: "Create internet gateway for the VPC"
+  ec2_vpc_igw:
+    vpc_id: "{{ ec2_vpc.vpc.id }}"
+    region: "{{ region }}"
+    state: present
+    tags:
+      Name: "{{ igw_name }}"
+  register: igw_result
+
+
+- name: "Create public subnet 1"
+  ec2_vpc_subnet:
+    vpc_id: "{{ ec2_vpc.vpc.id }}"
+    region: "{{ region }}"
+    az: "{{ zone1 }}"
+    state: present
+    cidr: "{{ cidr1 }}"
+    map_public: yes
+    resource_tags:
+      Name: "{{ subnet_name1 }}"
+  register: subnet_result1
+
+- name: "Create public subnet 2"
+  ec2_vpc_subnet:
+    vpc_id: "{{ ec2_vpc.vpc.id }}"
+    region: "{{ region }}"
+    az: "{{ zone2 }}"
+    state: present
+    cidr: "{{ cidr2 }}"
+    map_public: yes
+    resource_tags:
+      Name: "{{ subnet_name2 }}"
+  register: subnet_result2
+
+- name: "Create public subnet 3"
+  ec2_vpc_subnet:
+    vpc_id: "{{ ec2_vpc.vpc.id }}"
+    region: "{{ region }}"
+    az: "{{ zone3 }}"
+    state: present
+    cidr: "{{ cidr3 }}"
+    map_public: yes
+    resource_tags:
+      Name: "{{ subnet_name3 }}"
+  register: subnet_result3
+
+- name: "Create VPC public subnet route table"
+  ec2_vpc_route_table:
+    vpc_id: "{{ ec2_vpc.vpc.id }}"
+    region: "{{ region }}"
+    state: present
+    tags:
+      Name: "{{ public_route_table_name }}"
+    subnets: [ "{{ subnet_result1.subnet.id }}", "{{ subnet_result2.subnet.id }}", "{{ subnet_result3.subnet.id }}" ]
+    routes:
+      - dest: "{{ cidr_block }}"
+        gateway_id: "{{ igw_result.gateway_id }}"
+  register: public_route_table
+
+- name: "Create VPC private subnet 1"
+  ec2_vpc_subnet:
+    vpc_id: "{{ ec2_vpc.vpc.id }}"
+    region: "{{ region }}"
+    az: "{{ zone4 }}"
+    state: present
+    cidr: "{{ cidr4 }}"
+    resource_tags:
+      Name: "{{ subnet_name4 }}"
+  register: subnet_result4  
+
+- name: "Create VPC private subnet 2"
+  ec2_vpc_subnet:
+    vpc_id: "{{ ec2_vpc.vpc.id }}"
+    region: "{{ region }}"
+    az: "{{ zone5 }}"
+    state: present
+    cidr: "{{ cidr5 }}"
+    resource_tags:
+      Name: "{{ subnet_name5 }}"
+  register: subnet_result5  
+
+- name: "Create VPC private subnet 3"
+  ec2_vpc_subnet:
+    vpc_id: "{{ ec2_vpc.vpc.id }}"
+    region: "{{ region }}"
+    az: "{{ zone6 }}"
+    state: present
+    cidr: "{{ cidr6 }}"
+    resource_tags:
+      Name: "{{ subnet_name6 }}"
+  register: subnet_result6
+
+- name: "Create NAT Gateway"
+  ec2_vpc_nat_gateway:
+    state: present
+    region: "{{ region }}"
+    subnet_id: "{{ subnet_result1.subnet.id }}"
+    wait: yes
+    if_exist_do_not_create: true
+  register: result_nat_gateway
+
+- name: Set up private subnet route table
+  ec2_vpc_route_table:
+    vpc_id: "{{ ec2_vpc.vpc.id }}"
+    region: "{{ region }}"         
+    subnets: [ "{{ subnet_result4.subnet.id }}", "{{ subnet_result5.subnet.id }}", "{{ subnet_result6.subnet.id }}" ]
+    tags:
+      Name: "{{ private_route_table_name }}"
+    routes:
+     - dest: "{{ cidr_block }}"
+       gateway_id:   "{{ result_nat_gateway.nat_gateway_id }}"
+  register: result_private_route 

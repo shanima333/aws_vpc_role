@@ -1,0 +1,37 @@
+---
+
+#########################
+#VPC variables
+#########################
+
+vpc_name: "my_vpc"
+igw_name: "my_igw"
+subnet_name1: "Public Subnet1"
+subnet_name2: "Public Subnet2"
+subnet_name3: "Public Subnet3"
+subnet_name4: "Private Subnet1"
+subnet_name5: "Private Subnet2"
+subnet_name6: "Private Subnet3"
+bastion_sg: "Bastion Security Group"
+public_route_table_name: "my_vpc Public Route table"
+private_route_table_name: "my_vpc Private Route table"
+nat: "my_vpc NAT"
+webserver_sg: "Webserver security group"
+region: us-east-1
+
+zone1: 'us-east-1c'
+zone2: 'us-east-1b'
+zone3: 'us-east-1c'
+zone4: 'us-east-1d'
+zone5: 'us-east-1e'
+zone6: 'us-east-1f'
+
+
+cidr: '10.0.0.0/16'
+cidr1: '10.0.0.0/19'
+cidr2: '10.0.32.0/19'
+cidr3: '10.0.64.0/19'
+cidr4: '10.0.96.0/19'
+cidr5: '10.0.128.0/19'
+cidr6: '10.0.160.0/19'
+cidr_block: '0.0.0.0/0'
